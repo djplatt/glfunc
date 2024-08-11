@@ -318,6 +318,33 @@ bool M_error(arb_t res, arb_t x, Lfunc *L, int64_t prec)
   return true;
 }
 
+#define BIG_ZETA (10)
+#define BIG_ZETAD (1.001) // zeta([10,infinty]) in [1,1.001]
+void djp_zeta(arb_t res, const arb_t x, slong prec)
+{
+  static bool init=false;
+  static arb_t big_zeta,big_zetad,z;
+  
+  if(!init)
+    {
+      arb_init(big_zeta);
+      arb_init(big_zetad);
+      arb_init(z);
+      arb_set_ui(big_zeta,1);
+      arb_set_d(big_zetad,BIG_ZETAD);
+      arb_union(big_zetad,big_zetad,big_zeta,prec);
+      arb_set_ui(big_zeta,BIG_ZETA);
+    }
+      
+  arb_sub(z,x,big_zeta,prec);
+  if(arb_is_positive(z)) // very large x
+    {
+      arb_set(res,big_zetad);
+      return;
+    }
+  arb_zeta(res,x,prec);
+}
+      
 // Lemma 5 of ARB's g.pdf
 void F_hat_twiddle_error(arb_t res, arb_t x, Lfunc *L)
 {
@@ -354,17 +381,9 @@ void F_hat_twiddle_error(arb_t res, arb_t x, Lfunc *L)
   // 2X/r
   arb_div_ui(twoXbyr,X,L->degree,prec);
   arb_mul_2exp_si(twoXbyr,twoXbyr,1);
-  // arb_zeta appears to break for large real x
-  arb_set_ui(tmp2,100);
-  arb_sub(tmp1,twoXbyr,tmp2,prec);
-  if(arb_is_negative(tmp1)) // twoXbyr <= 100 so arb_zeta will work
-    arb_zeta(tmp2,twoXbyr,prec);
-  else
-    {
-      arb_set_ui(tmp3,1);
-      arb_zeta(tmp1,tmp2,prec);
-      arb_union(tmp2,tmp1,tmp3,prec);
-    }
+  // arb_zeta won't do x that straddle an int. Will happen when
+  // twoXbyr is large
+  djp_zeta(tmp2,twoXbyr,prec);
   arb_pow_ui(tmp1,tmp2,L->degree,prec);
   if(verbose)
     {
