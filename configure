@@ -9,7 +9,7 @@ PREFIX="" #"/usr/local"
 FLINT_DIR="" # "/usr/local"
 GMP_DIR="" #"/usr/local"
 PRIMESIEVE_DIR="" #"/usr/local"
-//ARB_DIR="" #"/usr/local"
+#ARB_DIR="" #"/usr/local"
 MPFR_DIR="" #"/usr/local"
 SMALLJAC_DIR="" #"/usr/local"
 FF_POLY_DIR="" #"/usr/local"
@@ -190,7 +190,7 @@ while [ "$1" != "" ]; do
     shift
 done
 
-echo "FLINT_DIR = ${FLINT_DIR}"
+#echo "FLINT_DIR = ${FLINT_DIR}"
 
 if [ -n "${FLINT_DIR}" ]; then
     if [ -d "${FLINT_DIR}/lib" ]; then
