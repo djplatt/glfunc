@@ -159,60 +159,38 @@ int main ()
     return 0;
   }
 
-  /*
-  Lfunc *LL=(Lfunc *) L;
-  for(uint64_t i=0;i<LL->M;i++)
-    {
-      printf("an[%lu]=",i+1);
-      acb_printd(LL->ans[i],20);
-      printf("\n");
-    }
-  */
-    
   // do the computation
   ecode|=Lfunc_compute(L);
-
-  /*
-  arb_t tmp1,sks;arb_init(tmp1);arb_init(sks);
-  for(uint64_t i=0;i<=LL->fft_NN/OUTPUT_RATIO;i+=LL->fft_NN/128)
-    {
-      arb_set_d(acb_realref(ctmp),0.5);
-      arb_mul_ui(acb_imagref(ctmp),LL->one_over_A,i,LL->wprec);
-      abs_gamma(tmp1,ctmp,LL,LL->wprec);
-      arb_div(sks,acb_realref(LL->res[i]),tmp1,LL->wprec);
-      printf("Lambda(1/2+i%f)=",(double)i/LL->A);arb_printd(sks,20);printf("\n");
-    }
-  */
   
   if(fatal_error(ecode))
   {
     fprint_errors(stderr,ecode);
     return 0;
   }
-  
+
   // now extract some information
   printf("Order of vanishing = %" PRIu64 "\n",Lfunc_rank(L));
-  printf("Epsilon = ");
-  acb_printd(Lfunc_epsilon(L),DIGITS);
+  printf("Sign = ");
+  acb_printd(Lfunc_sign(L),DIGITS);
   printf("\n");
-  if (RAW) cout<<"RAW: "<<Lfunc_epsilon(L) << endl;
+  printf("Square Root(Sign) = ");
+  acb_printd(Lfunc_sqrt_sign(L),DIGITS);
+  printf("\n");
   printf("First non-zero Taylor coeff = ");
   arb_printd(Lfunc_Taylor(L),DIGITS);
   printf("\n");
-  if (RAW) cout<<"RAW: "<<Lfunc_Taylor(L) << endl;
-  /*
-  arb_t bsd;
-  char bsd_str[] = "0.305999773834052301820483683321676474452637774590771998534541832481016050469290169911495257337795897237898682879524967997997869651621709648704953228700";
-  arb_init(bsd);
-  arb_set_str(bsd, bsd_str, 400);
-  assert(arb_overlaps(Lfunc_Taylor(L), bsd));
-  arb_clear(bsd);
-  */
 
-  //FIXME add asserts and these two lines to intro text
-  // ~ 0.183965475258329849732118662920
-  //acb_t ctmp;
-  //acb_init(ctmp);
+  printf("Zeros\n");
+  // we could use Lfunc_zeros(L, 1) for the dual L-function
+  arb_srcptr zeros=Lfunc_zeros(L, 0);
+  for(int i  = 0; i < 10; ++i) {
+    printf("Zero %d = ", i);
+    arb_printd(zeros+i, DIGITS);
+    printf("\n");
+    if (RAW) cout<<"RAW: "<<zeros + i<< endl;
+  }
+
+
   acb_t ctmp;acb_init(ctmp);
   ecode|=Lfunc_special_value(ctmp, L, 1.5, 0.0);
   if(fatal_error(ecode)) {
@@ -232,15 +210,6 @@ int main ()
 
 
 
-  printf("Zeros\n");
-  // we could use Lfunc_zeros(L, 1) for the dual L-function
-  arb_srcptr zeros=Lfunc_zeros(L, 0);
-  for(int i  = 0; i < 10; ++i) {
-    printf("Zero %d = ", i);
-    arb_printd(zeros+i, DIGITS);
-    printf("\n");
-    if (RAW) cout<<"RAW: "<<zeros + i<< endl;
-  }
 
   printf("Z-plot in [0, 10]:\n");
   Lplot_t *Lpp=Lfunc_plot_data(L, 0, 10.0, 20);
