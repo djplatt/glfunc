@@ -204,6 +204,7 @@ Lerror_t Lfunc_use_all_lpolys(Lfunc_t Lf, void (*lpoly_callback) (acb_poly_t lpo
         L->buthe_M=p-1; // this is likely to mean we compute garbage
       #endif
       L->M=p-1; // we might get away with this
+      if(verbose) printf("Ran out of polys at p = %ld\n",p);
       ecode|=ERR_INSUFF_EULER;
       break;
     }

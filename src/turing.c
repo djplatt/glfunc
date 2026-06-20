@@ -152,10 +152,12 @@ void logQ(arb_t res, acb_t s, Lfunc *L, int64_t prec) {
 //  2. Im mu_j = 0 here
 bool set_X(arb_t res, uint64_t r, double *mus, double one_over_B,
            int64_t prec) {
-  double max_mu = mus[0];
+  double max_mu = mus[r-1]; // the mus are sorted
+  /*
   for (uint64_t j = 1; j < r; j++)
     if (mus[j] > max_mu)
       max_mu = mus[j];
+  */
   if (verbose)
     printf("max mu_j = %10.8e\n", max_mu);
   max_mu += 2.5;
@@ -189,7 +191,7 @@ bool St_int(arb_t res, arb_t h, arb_t t0, Lfunc *L, int64_t prec) {
   static bool init = false;
   static acb_t s;
   static arb_t Q1, Q2, l2_half, pi, rc_theta_etc, tmp, tmp1;
-  if (!init) {
+  if(!init){
     init = true;
     arb_init(tmp);
     arb_init(tmp1);
@@ -203,13 +205,13 @@ bool St_int(arb_t res, arb_t h, arb_t t0, Lfunc *L, int64_t prec) {
     arb_set_d(Q2, -0.5);
     arb_add(l2_half, Q1, Q2, prec);
     arb_init(rc_theta_etc);
-    arb_set_d(Q2, 5.65056); // c_theta < 5.65055 in ARB Th 4.6
+    arb_set_d(Q2, 4.6902877); // c_theta from P-Z rather than Booker
     arb_set_ui(Q1, 8);
     arb_div_ui(pi, Q1, 10, prec);                  // 0.8
     arb_sub_ui(tmp, L->X, 5, prec);                // X-5
     arb_div(Q1, pi, tmp, prec);                    // 0.8/(X-5)
     arb_add(pi, Q1, Q2, prec);                     // c_theta + 0.8/(X-5)
-    arb_mul_ui(rc_theta_etc, pi, L->degree, prec); // c_\theta r+0.8 r/(X-5)
+    arb_mul_ui(rc_theta_etc, pi, L->degree, prec); // c_theta r+0.8 r/(X-5)
     if (verbose) {
       printf("c theta bit = ");
       arb_printd(rc_theta_etc, 10);
@@ -219,14 +221,15 @@ bool St_int(arb_t res, arb_t h, arb_t t0, Lfunc *L, int64_t prec) {
   }
   arb_set(acb_imagref(s), t0); // 3/2+it0
   logQ(Q2, s, L, prec);
-  arb_mul(tmp, Q2, l2_half, prec);
+  arb_mul(tmp, Q2, l2_half, prec); // (log2 -1/2)log Q(3/2+it0)
   arb_add(acb_imagref(s), acb_imagref(s), h, prec); // 3/2+it1
   logQ(Q1, s, L, prec);
   arb_mul_2exp_si(Q1, Q1, -2);
   arb_add(tmp1, tmp, Q1, prec);
   arb_add(tmp, tmp1, rc_theta_etc, prec);
-  arb_div(tmp1, tmp, pi, prec);
+  arb_div(tmp1, tmp, pi, prec); // div by Pi
   arb_mul_2exp_si(tmp1, tmp1, 1); // this is an upper bound
+  if(verbose){printf("Computed |2 int S(t)| <= ");arb_printd(tmp1,20);printf("\n");}
   arb_neg(tmp, tmp1);             // lower bound
   arb_union(res, tmp, tmp1, prec);
   return true;

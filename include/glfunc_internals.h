@@ -6,11 +6,11 @@
 #include <stdbool.h>
 #include "glfunc.h"
 
-
+#define DEFAULT_BIG_B (512)
 #define OUTPUT_RATIO (8) // we will analyse 1/this of B
 #define TURING_RATIO (16) // and use a further 1/this for Turing
-#define EXTRA_BITS (35) // extra bits of precision for convolves etc.
-#define verbose (false)
+#define EXTRA_BITS (24) // extra bits of precision for convolves etc.
+#define verbose (true)
 #define BAD_64 (1LL<<62)
 
 #ifdef BUTHE
@@ -24,7 +24,7 @@
 #define MAX_L (10) // maximum differential allowed in upsampling
 
 
-#define COMPUTE_ZEROS
+//#define COMPUTE_ZEROS
 #define COMPUTE_RANK
 
 
@@ -33,6 +33,7 @@ extern "C"{
 #endif
 
   typedef struct{
+    uint64_t big_B;
     uint64_t degree;
     uint64_t conductor;
     double normalisation;

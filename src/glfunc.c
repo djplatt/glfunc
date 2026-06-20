@@ -8,6 +8,7 @@
 extern "C" {
 #endif
 
+  
 bool fatal_error(Lerror_t ecode) { return ecode & 0xFFFFFFFF; }
 
 void fprint_errors(FILE *f, Lerror_t ecode) {
@@ -61,13 +62,13 @@ void fprint_errors(FILE *f, Lerror_t ecode) {
   if (ecode & ERR_G_OUTFILE)
     fprintf(f, "Problem opening file to cache G data.\n");
   if (ecode & ERR_BAD_DEGREE)
-    fprintf(f, "The degree of the L-function must be between 1 and %d\n",
-            MAX_DEGREE + 1);
+    fprintf(f, "The degree of the L-function must be between 2 and %d\n",
+            MAX_DEGREE);
   if (ecode & ERR_SPEC_NZ)
     fprintf(f, "Special value routine only works for Im s>=0.\n");
 }
 
-// what is the decay (in bits) in the gamma factors from 1/2 to 1/2+i(64/r)
+// what is the decay (in bits) in the gamma factors from 1/2 to 1/2+i(B/r)
 uint64_t decay(Lfunc *L) {
   arb_t tmp1, tmp2, tmp3;
   acb_t s;
@@ -77,7 +78,7 @@ uint64_t decay(Lfunc *L) {
   acb_init(s);
   arb_set_d(acb_realref(s), 0.5);
   abs_gamma(tmp1, s, L, 100);
-  arb_set_d(acb_imagref(s), 64.0 / (double)L->degree);
+  arb_set_d(acb_imagref(s), ((double)L->big_B/(double)OUTPUT_RATIO+(double)L->big_B/(double)TURING_RATIO)/(double)L->degree);
   abs_gamma(tmp2, s, L, 100);
   arb_div(tmp3, tmp1, tmp2, 100);
   if (verbose) {
@@ -119,6 +120,7 @@ Lfunc_t Lfunc_init_advanced(Lparams_t *Lp, Lerror_t *ecode) {
   uint64_t i, j;
   arb_t tmp;
 
+  
   if ((Lp->degree < 2) || (Lp->degree > MAX_DEGREE)) {
     ecode[0] |= ERR_BAD_DEGREE;
     return ((Lfunc_t)NULL);
@@ -129,6 +131,7 @@ Lfunc_t Lfunc_init_advanced(Lparams_t *Lp, Lerror_t *ecode) {
     ecode[0] |= ERR_OOM;
     return (Lfunc_t)NULL;
   }
+  L->big_B = Lp->big_B;
   L->degree = Lp->degree;
   L->normalisation = Lp->normalisation;
   L->conductor = Lp->conductor;
@@ -225,8 +228,8 @@ Lfunc_t Lfunc_init_advanced(Lparams_t *Lp, Lerror_t *ecode) {
   arb_set_d(L->two_pi_by_B, L->one_over_B * 2.0);
   arb_mul(L->two_pi_by_B, L->two_pi_by_B, L->pi, L->wprec);
 
-  L->fft_N = 1 << 11;  // length of DTF for convolutions
-  L->fft_NN = 1 << 16; // final output length
+  L->fft_N = L->big_B * 4;  // length of DTF for convolutions
+  L->fft_NN = L->fft_N * 32; // final output length
 
   L->A = L->fft_NN * L->one_over_B;
   arb_init(L->arb_A);
@@ -374,6 +377,7 @@ Lfunc_t Lfunc_init_advanced(Lparams_t *Lp, Lerror_t *ecode) {
 Lfunc_t Lfunc_init(uint64_t degree, uint64_t conductor, double normalisation,
                    const double *mus, Lerror_t *ecode) {
   Lparams_t Lp;
+  Lp.big_B = DEFAULT_BIG_B;
   Lp.degree = degree;
   Lp.conductor = conductor;
   Lp.normalisation = normalisation;

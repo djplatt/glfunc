@@ -13,12 +13,12 @@
 #define NO (0)
 
 //#define BUTHE
-#define TURING
+//#define TURING
 
 #define MAX_DEGREE (9) // if increasing, need more integrals in buthe.c
 // and probably need to take a good look at g.c
 #define MAX_R MAX_DEGREE
-#define MAX_ZEROS (256)
+#define MAX_ZEROS (1024)
 #define DEFAULT_TARGET_PREC (100)
 // error codes
 // those in lower 32 bits are fatal
@@ -61,6 +61,7 @@ extern "C"{
   typedef void *Lfunc_t;
 
   typedef struct{
+    uint64_t big_B;
     uint64_t degree;
     uint64_t conductor;
     double normalisation;

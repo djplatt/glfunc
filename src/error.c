@@ -180,9 +180,11 @@ void init_ftwiddle_error(Lfunc *L, int64_t prec)
   arb_sub_ui(tmp1,tmp2,1,prec);
   arb_neg(tmp1,tmp1);
   arb_div(L->pre_ftwiddle_error,E,tmp1,prec);
-  //printf("pre F twiddle error set to ");arb_printd(L->pre_ftwiddle_error,10);
-  //printf("\n");
-
+  if(verbose)
+    {
+      printf("pre F twiddle error set to ");arb_printd(L->pre_ftwiddle_error,10);
+      printf("\n");
+    }
   acb_clear(s);
   acb_clear(s_plus_mu);
   arb_clear(tmp1);
@@ -327,6 +329,7 @@ void djp_zeta(arb_t res, const arb_t x, slong prec)
   
   if(!init)
     {
+      init=true;
       arb_init(big_zeta);
       arb_init(big_zetad);
       arb_init(z);

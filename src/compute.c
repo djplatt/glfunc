@@ -359,7 +359,7 @@ Lerror_t Lfunc_compute(Lfunc_t Lf)
   final_ifft(L);
 
   if(verbose)
-    for(uint64_t i=0;i<=L->fft_NN/OUTPUT_RATIO;i+=L->fft_NN/128)
+    for(uint64_t i=0;i<=(L->fft_NN/OUTPUT_RATIO+L->fft_NN/TURING_RATIO);i+=L->fft_NN/128)
     {
       arb_set_d(acb_realref(ctmp),0.5);
       arb_mul_ui(acb_imagref(ctmp),L->one_over_A,i,L->wprec);

@@ -503,7 +503,7 @@ computeres:
     arb_mul_2exp_si(thresh,thresh,-prec);
     imin = (long)floor(umin/delta);
     for (imax=imin;error_bound(twomu,L->degree,imax*delta)<prec;imax++);
-
+    if(verbose) printf("imax set to %lu\n",imax);
     coeff_bound(m,L->degree,53);
     arb_init(L->C);
     arb_set_arf(L->C,m);
@@ -559,6 +559,9 @@ computeres:
       arb_init(g[i]);
     int64_t ii;
     for (i=imin,ii=0;i<=imax;i++,ii++) {
+      if(verbose)
+	if((i%1000)==0)
+	  printf("Processing i = %ld\n",i);
       arb_mul_si(u,eps,2*i,prec2);
       gtaylor(g,twomu,L->degree,u,k,prec,prec2);
       for (j=0;j<k;j++) {
@@ -699,9 +702,10 @@ computeres:
     Lerror_t ecode=ERR_SUCCESS;
     bool op = false; // true if we are going to write a cache file
     FILE *ofile = NULL; // file to write to
-
+    
     // are we in default mode and do we have a cache directory
-    if((L->gprec == 0) && (L->target_prec==DEFAULT_TARGET_PREC) && (L->cache_dir)) {
+    if((L->gprec == 0) && (L->target_prec==DEFAULT_TARGET_PREC) && (L->cache_dir)) // so cache_dir == NULL switches off caching
+      {
       char fname[1337];
       char *fname1,*fname2;
       fname1=(char *)malloc(1024*sizeof(char));
@@ -716,6 +720,7 @@ computeres:
       FILE *infile = fopen(fname, "r");
       if(infile) // we already have this G file in cache
 	{
+	  if(verbose) printf("Found file %s on disk. Reading it.\n",fname);
 	  bool res = read_gfile(infile, L); // so read it
 	  fclose(infile);
 	  if(res) // everything worked
@@ -723,9 +728,11 @@ computeres:
 	  return ecode|ERR_G_INFILE; // fatal error somewhere
 	}
       // we don't have this G file in cache
+      if(verbose) printf("Did not find file %s on disk. Creating it.\n",fname);
       ofile = fopen(fname, "w"); // try to open it for writing
       if( !ofile )
 	{
+	  if(verbose) printf("Error opening file %s. Can't write to it.\n",fname);
 	  ecode |= ERR_G_OUTFILE; // couldn't open outfile. Not fatal
 	  op = false;
 	}
@@ -734,7 +741,7 @@ computeres:
         op = true; // file open ok so we can output
 	}
     }
-
+    
     if( L->gprec == 0) // user hasn't told us what to use
     {
       double gfac = 0.0;
@@ -747,7 +754,7 @@ computeres:
     }
     if(verbose)
       printf("g precision set to %" PRId64 " bits\n", L->gprec);
-    computeall(L, -32*M_LN2, (double)L->degree/512, L->gprec, op, ofile);
+    computeall(L, -32*M_LN2, (double)L->degree/L->big_B, L->gprec, op, ofile);
     if(op)
       fclose(ofile);
     return ecode;
